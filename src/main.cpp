@@ -6,11 +6,52 @@
 #include <map>
 #include <memory>
 #include <array>
+#include <fstream>
+#include <sstream>
+#include <cstdio>
+
+#define LINE_SIZE 500
 
 using namespace std;
 
+bool ExecPreprocesor(const char *NazwaPliku, istringstream &IStrm4Cmds)
+{
+  string Cmd4Preproc = "cpp -P ";
+  char Line[LINE_SIZE];
+  ostringstream OTmpStrm;
+
+  Cmd4Preproc += NazwaPliku;
+  FILE* pProc = popen(Cmd4Preproc.c_str(), "r");
+
+  if(!pProc) return false;
+
+  while(fgets(Line, LINE_SIZE, pProc))
+  {
+    OTmpStrm << Line;
+  }
+
+  IStrm4Cmds.str(OTmpStrm.str());
+  return pclose(pProc) == 0;
+}
+
 int main()
 {
+	std::istringstream IStrm4Cmds;
+	const char *file_name = "przyklad.txt";
+
+	if (ExecPreprocesor(file_name, IStrm4Cmds))
+	{
+    // Zapisz wynik do pliku wyjściowego
+    std::ofstream output("cpp_result_file.txt");
+    output << IStrm4Cmds.rdbuf();
+    output.close();
+    std::cout << "Preprocesowanie zakończone sukcesem." << std::endl;
+	}
+	else
+	{
+	std::cerr << "Błąd podczas preprocesowania." << std::endl;
+	}
+
 	LibInterface move_interface;
 	LibInterface set_interface;
 	LibInterface rotate_interface;
@@ -49,7 +90,7 @@ int main()
 
 	AbstractInterp4Command *cmdInterp;
 
-	for(const std::string& key : cmd_names)
+	/*for(const std::string& key : cmd_names)
 	{
 		// create interpreter
 		cmdInterp = cmd_interfaces[key]->CreateCmdInterp();
@@ -61,5 +102,42 @@ int main()
 		cout << endl;
 		cmdInterp->PrintCmd();
 		cout << endl;
+	}*/
+
+	// czytanie pliku 
+	std::ifstream program_file("cpp_result_file.txt");
+
+	if (!program_file.is_open())
+	{
+        cerr << "Nie udało sie otworzyc pliku z przetworzonym programem" << endl;
+        return 1;
+    }
+
+	std::string word;
+	bool key_flag = false;
+	while(program_file >> word)
+	{
+		std::cout << word << std::endl;
+		// check if word is a command
+		for(const string& cmd : cmd_names)
+		{
+			if(word == cmd)
+			{ 
+				key_flag = true;
+				break;
+			}
+		}
+		std::cout << key_flag << std::endl;
+		if(key_flag)
+		{
+			cmdInterp = cmd_interfaces[word]->CreateCmdInterp();
+			cmdInterp->ReadParams(program_file);
+			cmdInterp->PrintCmd();
+			key_flag = false;
+			delete cmdInterp;
+		}
 	}
+	program_file.close();
+	std::cout << "Koniec" << std::endl;
+	return 0;
 }

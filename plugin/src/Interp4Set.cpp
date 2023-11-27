@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include "Interp4Set.hh"
 
 
@@ -28,8 +29,7 @@ AbstractInterp4Command* CreateCmd(void)
 /*!
  *
  */
-Interp4Set::Interp4Set(): _Speed_mmS(0)
-{}
+Interp4Set::Interp4Set() {}
 
 
 /*!
@@ -37,10 +37,10 @@ Interp4Set::Interp4Set(): _Speed_mmS(0)
  */
 void Interp4Set::PrintCmd() const
 {
-  /*
-   *  Tu trzeba napisać odpowiednio zmodyfikować kod poniżej.
-   */
-  cout << GetCmdName() << " 1 2 3" << endl;
+	cout << GetCmdName() << " " << obj_name << " " 
+		<< cord_x << " " << cord_y << " " <<
+		cord_z <<" " << ang_ox << " " << ang_oy <<
+		" " << ang_oz << endl;
 }
 
 
@@ -73,10 +73,13 @@ bool Interp4Set::ExecCmd( AbstractScene      &rScn,
  */
 bool Interp4Set::ReadParams(std::istream& Strm_CmdsList)
 {
-  /*
-   *  Tu trzeba napisać odpowiedni kod.
-   */
-  return true;
+	if(Strm_CmdsList.good())
+	{
+		Strm_CmdsList >> obj_name >> cord_x >> cord_y
+			>> cord_z >> ang_ox >> ang_oy >> ang_oz;
+		return true;
+	}
+  	return false;
 }
 
 

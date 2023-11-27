@@ -1,0 +1,7 @@
+  Set Ob_A 2 0 30 0 0 0
+  Set Ob_B 10 10 0 20 10 0
+  Rotate Ob_B OX 30 40
+  Pause 1000
+  Move Ob_A 10 10
+  Rotate Ob_B OZ 30 60
+  Move Ob_B 10 20

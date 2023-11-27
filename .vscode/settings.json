@@ -53,6 +53,12 @@
         "string": "cpp",
         "vector": "cpp",
         "xtree": "cpp",
-        "array": "cpp"
+        "array": "cpp",
+        "*.tcc": "cpp",
+        "chrono": "cpp",
+        "cstdarg": "cpp",
+        "cwctype": "cpp",
+        "unordered_map": "cpp",
+        "functional": "cpp"
     }
 }
