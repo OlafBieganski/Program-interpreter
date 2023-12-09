@@ -4,6 +4,8 @@
 #include <sstream>
 #include <cstdlib>
 #include <iostream>
+#include <map>
+#include "Vector3D.hh"
 
 
 
@@ -16,6 +18,7 @@ using namespace std;
  */
 XMLInterp4Config::XMLInterp4Config(Configuration &rConfig)
 {
+	_config_ptr = &rConfig;
 }
 
 
@@ -48,27 +51,30 @@ void XMLInterp4Config::endDocument()
  */
 void XMLInterp4Config::ProcessLibAttrs(const xercesc::Attributes  &rAttrs)
 {
- if (rAttrs.getLength() != 1) {
-      cerr << "Zla ilosc atrybutow dla \"Lib\"" << endl;
-      exit(1);
- }
+	if (rAttrs.getLength() != 1) {
+		cerr << "Zla ilosc atrybutow dla \"Lib\"" << endl;
+		exit(1);
+	}
 
- char* sParamName = xercesc::XMLString::transcode(rAttrs.getQName(0));
+	char* sParamName = xercesc::XMLString::transcode(rAttrs.getQName(0));
 
- if (strcmp(sParamName,"Name")) {
-      cerr << "Zla nazwa atrybutu dla Lib" << endl;
-      exit(1);
- }         
+	if (strcmp(sParamName,"Name")) {
+		cerr << "Zla nazwa atrybutu dla Lib" << endl;
+		exit(1);
+	}         
 
- XMLSize_t  Size = 0;
- char* sLibName = xercesc::XMLString::transcode(rAttrs.getValue(Size));
+	XMLSize_t  Size = 0;
+	char* sLibName = xercesc::XMLString::transcode(rAttrs.getValue(Size));
 
- cout << "  Nazwa biblioteki: " << sLibName << endl;
+	cout << "  Nazwa biblioteki: " << sLibName << endl;
 
- // Tu trzeba wpisać własny kod ...
+	// dodawanie biblioteki dynamicznej do listy w configuracji
+	_config_ptr->librariesNames.push_back(std::string(sLibName));
+	//cout << "Zapisane: " << _config_ptr->librariesNames.back() << endl;
 
- xercesc::XMLString::release(&sParamName);
- xercesc::XMLString::release(&sLibName);
+
+	xercesc::XMLString::release(&sParamName);
+	xercesc::XMLString::release(&sLibName);
 }
 
 
@@ -79,68 +85,116 @@ void XMLInterp4Config::ProcessLibAttrs(const xercesc::Attributes  &rAttrs)
  */
 void XMLInterp4Config::ProcessCubeAttrs(const xercesc::Attributes  &rAttrs)
 {
- if (rAttrs.getLength() < 1) {
-      cerr << "Zla ilosc atrybutow dla \"Cube\"" << endl;
-      exit(1);
- }
+	if (rAttrs.getLength() < 1) {
+		cerr << "Zla ilosc atrybutow dla \"Cube\"" << endl;
+		exit(1);
+	}
 
- /*
-  *  Tutaj pobierane sa nazwy pierwszego i drugiego atrybuty.
-  *  Sprawdzamy, czy na pewno jest to Name i Value.
-  */
+	/*
+	*  Tutaj pobierane sa nazwy pierwszego i drugiego atrybuty.
+	*  Sprawdzamy, czy na pewno jest to Name i Value.
+	*/
 
- char* sName_Name = xercesc::XMLString::transcode(rAttrs.getQName(0));
- char* sName_Scale = xercesc::XMLString::transcode(rAttrs.getQName(1));
- char* sName_RGB = xercesc::XMLString::transcode(rAttrs.getQName(2));
+	char* sName_Name = xercesc::XMLString::transcode(rAttrs.getQName(0));
 
- XMLSize_t  Index = 0;
- char* sValue_Name    = xercesc::XMLString::transcode(rAttrs.getValue(Index));
- char* sValue_Scale = xercesc::XMLString::transcode(rAttrs.getValue(1));
- char* sValue_RGB     = xercesc::XMLString::transcode(rAttrs.getValue(2));
+	if(std::string(sName_Name) != "Name")
+	{
+		cerr << "Brak atrybutu Name dla \"Cube\"." << endl;
+		exit(1);
+	}
 
+	/*std::array<std::string, 6> attr_names = {"Name", "Shift", "Scale", "RotXYZ_deg", "Trans_m", "RGB"};
 
- //-----------------------------------------------------------------------------
- // Wyświetlenie nazw atrybutów i ich "wartości"
- //
- cout << " Atrybuty:" << endl
-      << "     " << sName_Name << " = \"" << sValue_Name << "\"" << endl
-      << "     " << sName_Scale << " = \"" << sValue_Scale << "\"" << endl
-      << "     " << sName_RGB << " = \"" << sValue_RGB << "\"" << endl   
-      << endl; 
- //-----------------------------------------------------------------------------
- // Przykład czytania wartości parametrów
- // Ten przykład jest zrobiony "na piechotę" wykorzystując osobne zmienne.
- // Skala powinna być wektorem. Czytanie powinno być rezlizowane z wykorzysaniem
- // wektorów, np.
- //
- //
- // istringstream IStrm;
- // IStrm.str(sValue_Scale);
- // Vector3D  Scale;
- //
- // IStrm >> Scale;
- //
- istringstream   IStrm;
- 
- IStrm.str(sValue_Scale);
- double  Sx,Sy,Sz;
+	for (XMLSize_t i = 0; i < rAttrs.getLength(); i++)
+    {
+        char *tmp = xercesc::XMLString::transcode(rAttrs.getQName(i));
+        
+    }*/
 
- IStrm >> Sx >> Sy >> Sz;
- if (IStrm.fail()) {
-     cerr << " Blad!!!" << endl;
- } else {
-     cout << " Czytanie wartosci OK!!!" << endl;
-     cout << "     " << Sx << "  " << Sy << "  " << Sz << endl;
- }
+	std::map<std::string, XMLSize_t> attributes;
 
- // Tu trzeba wstawić odpowiednio własny kod ...
+    for (XMLSize_t i = 0; i < rAttrs.getLength(); i++)
+    {
+        char *tmp = xercesc::XMLString::transcode(rAttrs.getQName(i));
+        attributes.emplace(std::string(tmp), i); // bylo move
+        xercesc::XMLString::release(&tmp);
+    }
 
- xercesc::XMLString::release(&sName_Name);
- xercesc::XMLString::release(&sName_Scale);
- xercesc::XMLString::release(&sName_RGB);
- xercesc::XMLString::release(&sValue_Name);
- xercesc::XMLString::release(&sValue_Scale);
- xercesc::XMLString::release(&sValue_RGB);
+    char *Name_value = xercesc::XMLString::transcode(rAttrs.getValue(attributes.at("Name")));
+    char *Shift_value = xercesc::XMLString::transcode(rAttrs.getValue(attributes.at("Shift")));
+    char *Scale_value = xercesc::XMLString::transcode(rAttrs.getValue(attributes.at("Scale")));
+    char *RotXYZ_deg_value = xercesc::XMLString::transcode(rAttrs.getValue(attributes.at("RotXYZ_deg")));
+    char *Trans_m_value = xercesc::XMLString::transcode(rAttrs.getValue(attributes.at("Trans_m")));
+    char *RGB_value = xercesc::XMLString::transcode(rAttrs.getValue(attributes.at("RGB")));
+
+    istringstream tmp1, tmp2, tmp3, tmp4, tmp5;
+    std::string Name = std::string(Name_value);
+    Vector3D Shift, Scale, RotXYZ_deg, Trans_m, RGB;
+    tmp1.str(Shift_value);
+    tmp1 >> Shift;
+    tmp2.str(Scale_value);
+    tmp2 >> Scale;
+    tmp3.str(RotXYZ_deg_value);
+    tmp3 >> RotXYZ_deg;
+    tmp4.str(Trans_m_value);
+    tmp4 >> Trans_m;
+    tmp5.str(RGB_value);
+    tmp5 >> RGB;
+
+	// tworzymy obiekt cuboid i dodajemy do konfiguracji sceny
+    MobileObj cuboid;
+	cuboid.SetName(Name.c_str());
+	cuboid.SetAng_Roll_deg(RotXYZ_deg[0]);
+	cuboid.SetAng_Pitch_deg(RotXYZ_deg[1]);
+	cuboid.SetAng_Yaw_deg(RotXYZ_deg[2]);
+	cuboid.SetPosition_m(Trans_m);
+	_config_ptr->mobileObjs.push_back(cuboid);
+
+    std::cout << "Attributes read:\n";
+    std::cout << "Name: "
+              << "Name"
+              << " | value: " << Name << std::endl;
+    std::cout << "Name: "
+              << "Shift"
+              << " | value: " << Shift << std::endl;
+    std::cout << "Name: "
+              << "Scale"
+              << " | value: " << Scale << std::endl;
+    std::cout << "Name: "
+              << "RotXYZ_deg"
+              << " | value: " << RotXYZ_deg << std::endl;
+    std::cout << "Name: "
+              << "Trans_m"
+              << " | value: " << Trans_m << std::endl;
+    std::cout << "Name: "
+              << "RGB"
+              << " | value: " << RGB << std::endl;
+
+	// tworzymy skladnie komendy ktora bedzie wyslana do serwera graficznego
+	// w celu narysownia wstepnej konfiguracji obiketu
+    std::stringstream command;
+    command << "AddObj Name="
+            << Name
+            << " RGB="
+            << RGB
+            << " Scale="
+            << Scale
+            << " Shift="
+            << Shift
+            << " RotXYZ_deg="
+            << RotXYZ_deg
+            << " Trans_m="
+            << Trans_m
+            << "\n";
+    _config_ptr->commands.push_back(command.str());
+
+	xercesc::XMLString::release(&sName_Name);
+	xercesc::XMLString::release(&Name_value);
+	xercesc::XMLString::release(&Shift_value);
+	xercesc::XMLString::release(&Scale_value);
+	xercesc::XMLString::release(&RotXYZ_deg_value);
+	xercesc::XMLString::release(&Trans_m_value);
+	xercesc::XMLString::release(&RGB_value);
 }
 
 

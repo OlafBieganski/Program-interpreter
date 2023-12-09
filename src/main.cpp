@@ -28,7 +28,7 @@ using namespace xercesc;
  * \retval true - jeśli wczytanie zostało zrealizowane poprawnie,
  * \retval false - w przeciwnym przypadku.
  */
-bool ReadFile(const char* sFileName, Configuration &rConfig)
+bool ReadFile(const char* sFileName, Configuration& rConfig)
 {
    try {
             XMLPlatformUtils::Initialize();
@@ -128,6 +128,9 @@ int main()
 	// testowo
 	Configuration Config;
 	if(!ReadFile("config/config.xml",Config)) return 1;
+	//if(!Config.commands.empty()) std::cout << Config.commands.back();
+	//else std::cout << "Empty commands list" << std::endl;
+	//std::cout << Config.mobileObjs.back().GetName() << std::endl;
 
 	if (ExecPreprocesor(file_name, IStrm4Cmds))
 	{

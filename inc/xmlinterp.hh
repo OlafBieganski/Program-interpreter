@@ -13,6 +13,16 @@
 //XERCES_CPP_NAMESPACE_USE
 
 #include "Configuration.hh"
+#include <memory>
+
+namespace
+{
+	std::istream& operator>>(std::istream &stream, Vector3D &vec)
+	{
+		stream >> vec[0] >> vec[1] >> vec[2];
+		return stream;
+	}
+}
 
 
 /*!
@@ -84,6 +94,7 @@ class XMLInterp4Config : public xercesc::DefaultHandler {
      */
     void ProcessCubeAttrs(const xercesc::Attributes&   rAttrs); 
   private:
+    Configuration* _config_ptr;
 };
 
 #endif
