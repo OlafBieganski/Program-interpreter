@@ -65,8 +65,7 @@ virtual const char* GetCmdName() const override;
 * \retval true - operacja powiodła się,
 * \retval false - w przypadku przeciwnym.
 */
-virtual bool ExecCmd( AbstractScene      &rScn, 
-          const char         *sMobObjName,
+virtual bool ExecCmd( AbstractScene      &rScn,
           AbstractComChannel &rComChann ) override;
 /*!
 * \brief Czyta wartości parametrów danego polecenia

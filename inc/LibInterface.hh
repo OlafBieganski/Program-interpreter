@@ -9,8 +9,8 @@ class LibInterface
 {
   private:
     AbstractInterp4Command *(*pCreateCmd)(void) = nullptr;
-  public:
     void *pLibHnd = nullptr;
+  public:
     bool Init(const char* LibName);
     AbstractInterp4Command* CreateCmdInterp() {assert(pCreateCmd); return pCreateCmd();}
     ~LibInterface() { if(pLibHnd) dlclose(pLibHnd); }

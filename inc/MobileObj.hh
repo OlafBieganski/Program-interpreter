@@ -16,6 +16,7 @@ class MobileObj : public AbstractMobileObj
     double _yaw_deg;
 
     public:
+    MobileObj(const AbstractMobileObj& other) {};
     double GetAng_Roll_deg() const { return _roll_deg; }
     double GetAng_Pitch_deg() const { return _pitch_deg; }
     double GetAng_Yaw_deg() const { return _yaw_deg; }

@@ -1,6 +1,9 @@
 #include <iostream>
 #include <fstream>
 #include "Interp4Set.hh"
+#include <thread>
+#include <chrono>
+#include <sstream>
 
 
 using std::cout;
@@ -56,15 +59,39 @@ const char* Interp4Set::GetCmdName() const
 /*!
  *
  */
-bool Interp4Set::ExecCmd( AbstractScene      &rScn, 
-                           const char         *sMobObjName,
-			   AbstractComChannel &rComChann
-			 )
+bool Interp4Set::ExecCmd( AbstractScene &rScn, AbstractComChannel &rComChann)
 {
-  /*
-   *  Tu trzeba napisać odpowiedni kod.
-   */
-  return true;
+  	//guardedSocket->lockCout();
+    this->PrintCmd();
+    //guardedSocket->unlockCout();
+
+    AbstractMobileObj* obj;
+    try
+    {
+        obj = rScn.FindMobileObj(obj_name.c_str());
+    }
+    catch (std::out_of_range &error)
+    {
+        //guardedSocket->lockCout();
+        std::cerr << "Failed to find object: " << obj_name << " in Interp4Move::ExecCmd! Command had no effect." << std::endl;
+        //guardedSocket->unlockCout();
+
+        return false;
+    }
+    auto currPose = obj->GetPosition_m();
+
+    currPose[0] += cord_x;
+    currPose[1] += cord_y;
+    currPose[2] += cord_z;
+    //obj->lockObj();
+    obj->SetPosition_m(currPose);
+    //obj->unlockObj();
+    //guardedSocket->lockAccess();
+    std::stringstream ss;
+    ss << "UpdateObj " << "Name=" << obj->GetName() << " Trans_m=" << currPose << "\n";
+    rComChann.Send(ss.str().c_str());
+    //guardedSocket->unlockAccess();
+    return true;
 }
 
 

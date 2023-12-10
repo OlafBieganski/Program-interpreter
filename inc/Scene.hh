@@ -8,9 +8,9 @@
 class Scene : public AbstractScene
 {
     private:
-        std::map<std::string, std::shared_ptr<MobileObj>> _Set_MobileObjs;
+        std::map<std::string, MobileObj*> _Set_MobileObjs;
     public:
-        std::shared_ptr<AbstractMobileObj>  FindMobileObj(const char *sName) override;
+        AbstractMobileObj*  FindMobileObj(const char *sName) override;
         void AddMobileObj(AbstractMobileObj *pMobObj) override;
         Scene() = default;
         ~Scene() = default;
@@ -19,10 +19,18 @@ class Scene : public AbstractScene
 void Scene::AddMobileObj(AbstractMobileObj *pMobObj)
 {
     std::string obj_name = pMobObj->GetName();
+    std::cout << "nazwa: " << obj_name << std::endl;
 
     if(_Set_MobileObjs.find(obj_name) == _Set_MobileObjs.end())
     {
-        _Set_MobileObjs[obj_name] = std::make_shared<MobileObj>(*pMobObj);
+        MobileObj* mobile_obj = dynamic_cast<MobileObj*>(pMobObj);
+        if(!mobile_obj)
+        {
+            std::cerr << "Dynamic cast in void Scene::AddMobileObj(AbstractMobileObj *pMobObj) failed\n";
+            exit(1);
+        }
+        _Set_MobileObjs[obj_name] = mobile_obj;
+        std::cout << "Name (addmobileobj): " << _Set_MobileObjs.at(obj_name)->GetName() << std::endl;
     }
     else
     {
@@ -30,7 +38,7 @@ void Scene::AddMobileObj(AbstractMobileObj *pMobObj)
     }
 }
 
-std::shared_ptr<AbstractMobileObj>  Scene::FindMobileObj(const char *sName)
+AbstractMobileObj*  Scene::FindMobileObj(const char *sName)
 {
     return _Set_MobileObjs.at(std::string(sName));
 }

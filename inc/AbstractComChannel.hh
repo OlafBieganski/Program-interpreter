@@ -21,7 +21,7 @@
     class AbstractComChannel {
      public:
 
-      virtual ~AbstractComChannel() {}
+     //virtual ~AbstractComChannel() {}
       
       /*!
        * \brief Inicjalizuje destryptor gniazda.
@@ -29,7 +29,7 @@
        * Inicjalizuje destryptora pliku skojarzonego z połączeniem sieciowym z serwerem.
        * \param[in] Socket - zawiera poprawny deskryptor.
        */
-       virtual void Init(int Socket) = 0;
+       virtual bool Init() = 0;
       /*!
        * \brief Udostępnia deskryptor pliku skojarzonego z połączeniem sieciowym z serwerem.
        *
@@ -37,14 +37,16 @@
        * \return Deskryptor pliku.
        */
        virtual int GetSocket() const = 0;
+
+       virtual bool Send(const char *msg) = 0;
       /*!
        * \brief Zamyka dostęp gniazda.
        */
-       virtual void LockAccess() = 0;
+       //virtual void LockAccess() = 0;
       /*!
        * \brief Otwiera dostęp do gniazda.
        */
-       virtual void UnlockAccess() = 0;
+       //virtual void UnlockAccess() = 0;
        /*!
         * \brief Udostępnia mutex w trybie modyfikacji.
         *
@@ -53,7 +55,7 @@
         *  np. poprzez klasę std::lock_gaurd, która daje możliwość
         *  bezpieczniejszego zamknięcia.
         */
-       virtual std::mutex &UseGuard();
+       //virtual std::mutex &UseGuard();
     };
 
 

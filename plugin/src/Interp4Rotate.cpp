@@ -1,5 +1,8 @@
 #include <iostream>
 #include "Interp4Rotate.hh"
+#include "MobileObj.hh"
+#include <thread>
+#include <sstream>
 
 
 using std::cout;
@@ -55,15 +58,71 @@ const char* Interp4Rotate::GetCmdName() const
 /*!
  *
  */
-bool Interp4Rotate::ExecCmd( AbstractScene      &rScn, 
-                           const char         *sMobObjName,
-			   AbstractComChannel &rComChann
-			 )
+bool Interp4Rotate::ExecCmd( AbstractScene &rScn, AbstractComChannel &rComChann)
 {
-  /*
-   *  Tu trzeba napisać odpowiedni kod.
-   */
-  return true;
+	//guardedSocket->lockCout();
+    this->PrintCmd();
+    //guardedSocket->unlockCout();
+
+    AbstractMobileObj* obj;
+    try
+    {
+        obj = rScn.FindMobileObj(obj_name.c_str());
+    }
+    catch (std::out_of_range &error)
+    {
+        std::cerr << "Failed to find object: " << obj_name << " in Interp4Move::ExecCmd! Command had no effect." << std::endl;
+        return false;
+    }
+    
+	Vector3D rotation, curr_rot, result_rot;
+	unsigned int idx;
+	if(axis_name == "OX")
+	{
+		idx = 0;
+		rotation[0] = rot_angle;
+	}
+	else if(axis_name == "OY")
+	{
+		idx = 1;
+		rotation[1] = rot_angle;
+	}
+	else if(axis_name == "OZ")
+	{
+		idx = 2;
+		rotation[2] = rot_angle;
+	}
+	else
+	{
+		std::cerr << "Unrecognized parameter in Rotate command.\n";
+		return false;
+	}
+
+	curr_rot[0] = obj->GetAng_Roll_deg();
+    curr_rot[1] = obj->GetAng_Pitch_deg();
+    curr_rot[2] = obj->GetAng_Yaw_deg();
+
+    result_rot = curr_rot; // najpierw zaczynamy od poczatkowej orinetacji dla kazdej skladowej
+
+    for (int i = 0; i < 100; ++i)
+    {
+		// inkrementujemy skladaowa wokol ktorej rotujemy
+        result_rot[idx] = curr_rot[idx] + (rotation[idx] / 100.0) * (double)(i);
+        //guardedSocket->lockAccess();
+        std::stringstream ss;
+        ss << "UpdateObj " << "Name=" << obj->GetName() << " RotXYZ_deg=" << result_rot << "\n";
+		rComChann.Send(ss.str().c_str());
+        //guardedSocket->unlockAccess();
+        std::this_thread::sleep_for(std::chrono::milliseconds((int)(1000 / ang_vel)));
+    }
+
+	// obj->lockObj();
+	obj->SetAng_Roll_deg(result_rot[0]);
+	obj->SetAng_Pitch_deg(result_rot[1]);
+	obj->SetAng_Yaw_deg(result_rot[2]);
+	// obj->unlockObj();
+
+    return true;
 }
 
 
