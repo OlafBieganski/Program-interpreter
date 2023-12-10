@@ -75,7 +75,6 @@ bool Interp4Move::ExecCmd( AbstractScene &rScn, AbstractComChannel &rComChann)
         return false;
     }
     auto currPose = obj->GetPosition_m();
-	//std::cout << "Name: " << obj->GetName() << std::endl;
 
     Vector3D trans_vec;
     double rot_vec[3] = {obj->GetAng_Roll_deg() * 3.14 / 180, obj->GetAng_Pitch_deg() * 3.14 / 180, obj->GetAng_Yaw_deg() * 3.14 / 180};
