@@ -23,10 +23,12 @@ LDFLAGS=-Wall
 
 
 interp: obj/xmlinterp.o obj/main.o
-	g++ ${LDFLAGS} -o interp  obj/main.o obj/xmlinterp.o -ldl -lxerces-c
+	g++ ${LDFLAGS} -o interp  obj/main.o obj/xmlinterp.o -ldl -lxerces-c -pthread
 
-obj/main.o: src/main.cpp inc/AbstractInterp4Command.hh inc/AbstractScene.hh\
-            inc/AbstractComChannel.hh inc/xmlinterp.hh
+obj/main.o: src/main.cpp inc/AbstractInterp4Command.hh inc/AbstractScene.hh inc/ComChannel.hh\
+            inc/AbstractComChannel.hh inc/xmlinterp.hh inc/ProgramInterpreter.hh inc/MobileObj.hh\
+			inc/Configuration.hh inc/geomVector.hh inc/LibInterface.hh inc/Vector3D.hh inc/Scene.hh\
+			inc/AbstractMobileObj.hh
 	g++ -c ${CPPFLAGS} -o obj/main.o src/main.cpp
 
 obj/xmlinterp.o: src/xmlinterp.cpp inc/xmlinterp.hh
