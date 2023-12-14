@@ -60,9 +60,7 @@ const char* Interp4Rotate::GetCmdName() const
  */
 bool Interp4Rotate::ExecCmd( AbstractScene &rScn, AbstractComChannel &rComChann)
 {
-	//guardedSocket->lockCout();
     this->PrintCmd();
-    //guardedSocket->unlockCout();
 
     AbstractMobileObj* obj;
     try
@@ -98,9 +96,11 @@ bool Interp4Rotate::ExecCmd( AbstractScene &rScn, AbstractComChannel &rComChann)
 		return false;
 	}
 
+	obj->LockAccess();
 	curr_rot[0] = obj->GetAng_Roll_deg();
     curr_rot[1] = obj->GetAng_Pitch_deg();
     curr_rot[2] = obj->GetAng_Yaw_deg();
+	obj->UnlockAccess();
 
     result_rot = curr_rot; // najpierw zaczynamy od poczatkowej orinetacji dla kazdej skladowej
 
@@ -108,19 +108,19 @@ bool Interp4Rotate::ExecCmd( AbstractScene &rScn, AbstractComChannel &rComChann)
     {
 		// inkrementujemy skladaowa wokol ktorej rotujemy
         result_rot[idx] = curr_rot[idx] + (rotation[idx] / 100.0) * (double)(i);
-        //guardedSocket->lockAccess();
         std::stringstream ss;
-        ss << "UpdateObj " << "Name=" << obj->GetName() << " RotXYZ_deg=" << result_rot << "\n";
+        ss << "UpdateObj " << "Name=" << obj_name << " RotXYZ_deg=" << result_rot << "\n";
+		rComChann.LockAccess();
 		rComChann.Send(ss.str().c_str());
-        //guardedSocket->unlockAccess();
+		rComChann.UnlockAccess();
         std::this_thread::sleep_for(std::chrono::milliseconds((int)(1000 / ang_vel)));
     }
 
-	// obj->lockObj();
+	obj->LockAccess();
 	obj->SetAng_Roll_deg(result_rot[0]);
 	obj->SetAng_Pitch_deg(result_rot[1]);
 	obj->SetAng_Yaw_deg(result_rot[2]);
-	// obj->unlockObj();
+	obj->UnlockAccess();
 
     return true;
 }

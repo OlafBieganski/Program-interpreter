@@ -12,10 +12,16 @@
 #include "ProgramInterpreter.hh"
 
 
-int main()
+int main(int argc, char* argv[])
 {
+	if(argc < 3)
+	{
+		std::cerr << "Not enough arguments\n";
+		exit(1);
+	}
+	
 	ProgramInterpreter cmd2server_prog;
-	cmd2server_prog.Read_XML_Config("config/config.xml");
-	cmd2server_prog.ExecProgram("przyklad.txt");
+	cmd2server_prog.Read_XML_Config(argv[2]);
+	cmd2server_prog.ExecProgram(argv[1]);
 	return 0;
 }

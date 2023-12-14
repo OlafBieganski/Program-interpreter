@@ -42,11 +42,11 @@
       /*!
        * \brief Zamyka dostęp gniazda.
        */
-       //virtual void LockAccess() = 0;
+       virtual void LockAccess() = 0;
       /*!
        * \brief Otwiera dostęp do gniazda.
        */
-       //virtual void UnlockAccess() = 0;
+       virtual void UnlockAccess() = 0;
        /*!
         * \brief Udostępnia mutex w trybie modyfikacji.
         *

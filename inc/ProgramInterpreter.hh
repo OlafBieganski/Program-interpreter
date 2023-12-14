@@ -12,6 +12,7 @@
 #include <xercesc/sax2/DefaultHandler.hpp>
 #include <xercesc/util/XMLString.hpp>
 #include "xmlinterp.hh"
+#include <thread>
 
 #define LINE_SIZE 500
 #define PORT 6217
@@ -25,6 +26,7 @@ class ProgramInterpreter
         Scene _Scn;
         std::map<std::string, std::shared_ptr<LibInterface>> _LibManager;
         ComChannel _Chann2Serv;
+        std::list<std::thread> threads_list;
         Configuration config;
         bool LoadLibraries();
         void CreateScene();
@@ -32,7 +34,7 @@ class ProgramInterpreter
     public:
         bool Read_XML_Config(const char* xml_filename);
         bool ExecProgram(const char* prog_filename);
-        ProgramInterpreter() { _Chann2Serv = ComChannel(PORT); }
+       ProgramInterpreter() : _Chann2Serv(PORT) {}
 };
 
 bool ProgramInterpreter::ExecPreprocesor(const char *NazwaPliku, istringstream &IStrm4Cmds)
@@ -157,9 +159,42 @@ bool ProgramInterpreter::ExecProgram(const char* prog_filename)
     // czytanie strumienia pliku z preprocesora
     std::string word;
     bool key_flag = false;
+    bool concurrency = false;
+    // list of interpreters to delete after concurrent actions
+    std::list<AbstractInterp4Command*> interps_to_delete;
 	while(IStrm4Cmds >> word)
 	{
-		std::cout << word << std::endl;
+        std::cout << "Wejscie petla: " << word << std::endl;
+        // determine if the block should be run concurrently
+        if(word == "End_Parallel_Actions") 
+        {   
+            std::cout << "->tutaj<-" << std::endl;
+            //std::this_thread::sleep_for(1000ms);
+            // wait for threads
+            for(std::thread &th : threads_list)
+            {
+                std::cout << th.get_id() << std::endl;
+                if(th.joinable()) th.join();
+            }
+            threads_list.clear();
+
+            // delete dynamic mememory
+            for(AbstractInterp4Command* interp : interps_to_delete)
+            {
+                delete interp;
+            }
+            interps_to_delete.clear();
+
+            concurrency = false;
+            IStrm4Cmds >> word;
+            std::cout << "End: " << word << std::endl;
+        }
+        if(word == "Begin_Parallel_Actions")
+        {
+            concurrency = true;
+            IStrm4Cmds >> word;
+            std::cout << "Begin: " << word << std::endl;
+        }
 		// check if word is a command
         std::shared_ptr<LibInterface> LibInter;
         try
@@ -178,8 +213,25 @@ bool ProgramInterpreter::ExecProgram(const char* prog_filename)
 		{
 			AbstractInterp4Command *cmdInterp = LibInter->CreateCmdInterp();
             cmdInterp->ReadParams(IStrm4Cmds);
-			cmdInterp->ExecCmd(_Scn, _Chann2Serv);
-			delete cmdInterp;
+            if(concurrency)
+            {
+                std::cout << "Watek tworzony dla: " << word << std::endl;
+                // Create a lambda function to be executed in the new thread
+                auto threadFunction = [&](){ cmdInterp->ExecCmd(_Scn, _Chann2Serv); };
+                // Create a shared pointer to the thread and pass the lambda function
+                //std::shared_ptr<std::thread> thd = std::make_shared<std::thread>(threadFunction);
+                // Add the thread to threads_list
+                threads_list.emplace_back(std::thread(threadFunction));
+                // dynamically alloc memeory to delete later
+                interps_to_delete.push_back(cmdInterp);
+            }
+            else // non-concurrently
+            {
+                std::cout << "Bez watku dla: " << word << std::endl;
+                cmdInterp->ExecCmd(_Scn, _Chann2Serv);
+                delete cmdInterp;
+            }
+            key_flag = false;
 		}
 	}
 

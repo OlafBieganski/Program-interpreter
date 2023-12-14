@@ -74,15 +74,16 @@ bool Interp4Move::ExecCmd( AbstractScene &rScn, AbstractComChannel &rComChann)
 
         return false;
     }
-    auto currPose = obj->GetPosition_m();
 
-    Vector3D trans_vec;
+	obj->LockAccess();
+    auto currPose = obj->GetPosition_m();
     double rot_vec[3] = {obj->GetAng_Roll_deg() * 3.14 / 180, obj->GetAng_Pitch_deg() * 3.14 / 180, obj->GetAng_Yaw_deg() * 3.14 / 180};
+	obj->UnlockAccess();
+
+	Vector3D trans_vec;
     trans_vec[0] = (cos(rot_vec[0]) * sin(rot_vec[1]) * cos(rot_vec[2]) + sin(rot_vec[0]) * sin(rot_vec[2])) * distance;
     trans_vec[1] = (cos(rot_vec[0]) * sin(rot_vec[1]) * sin(rot_vec[2]) - sin(rot_vec[0]) * cos(rot_vec[2])) * distance;
     trans_vec[2] = cos(rot_vec[0]) * cos(rot_vec[1]) * distance;
-    //std::cout << "trans_vec: " << trans_vec << std::endl;
-    //std::cout << "currPose + trans_vec: " << currPose + trans_vec << std::endl;
 	
     Vector3D newPose;
     for (int i = 0; i < 100; ++i)
@@ -92,12 +93,16 @@ bool Interp4Move::ExecCmd( AbstractScene &rScn, AbstractComChannel &rComChann)
         newPose[2] = currPose[2] + (trans_vec[2] / 100.0) * (double)(i);
         std::stringstream ss;
         ss << "UpdateObj "
-           << "Name=" << obj->GetName() << " Trans_m=" << newPose << "\n";
+           << "Name=" << obj_name << " Trans_m=" << newPose << "\n";
 		//std::cout << ss.str();
+		rComChann.LockAccess();
         rComChann.Send(ss.str().c_str());
-        std::this_thread::sleep_for(std::chrono::milliseconds((int)(1000 / speed)));
+        rComChann.UnlockAccess();
+		std::this_thread::sleep_for(std::chrono::milliseconds((int)(1000 / speed)));
     }
+	obj->LockAccess();
     obj->SetPosition_m(newPose);
+	obj->UnlockAccess();
     return true;
 }
 

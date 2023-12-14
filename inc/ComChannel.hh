@@ -9,19 +9,21 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <iostream>
+#include <mutex>
 
 
 class ComChannel : public AbstractComChannel
 {
     private:
         int _Socket;
-        int _Port;    
+        int _Port;
+        std::mutex accessMutex;   
     public:
         bool Init();
         int GetSocket() const;
         bool Send(const char *msg);
-        //void LockAccess();
-        //void UnlockAccess();
+        void LockAccess();
+        void UnlockAccess();
         //std::mutex &UseGuard();
         ~ComChannel() { close(_Socket); };
         ComChannel() = default;
@@ -74,15 +76,15 @@ int ComChannel::GetSocket() const
     return _Socket;
 }
 
-/*void ComChannel::LockAccess()
+void ComChannel::LockAccess()
 {
+    accessMutex.lock();
+}
 
-}*/
-
-/*void ComChannel::UnlockAccess()
+void ComChannel::UnlockAccess()
 {
-
-}*/
+    accessMutex.unlock();
+}
 
 /*std::mutex& ComChannel::UseGuard()
 {

@@ -3,6 +3,7 @@
 
 #include "AbstractMobileObj.hh"
 #include <string>
+#include <mutex>
 
 class MobileObj : public AbstractMobileObj 
 {
@@ -14,6 +15,7 @@ class MobileObj : public AbstractMobileObj
     double _roll_deg;
     double _pitch_deg;
     double _yaw_deg;
+    std::mutex mtx;
 
     public:
     MobileObj(const AbstractMobileObj& other) {};
@@ -28,6 +30,8 @@ class MobileObj : public AbstractMobileObj
     void SetPosition_m(const Vector3D &rPos_m) { _position = rPos_m; }
     void SetName(const char* sName) { name = sName; }
     const std::string & GetName() const { return name; }
+    void LockAccess() { mtx.lock(); }
+    void UnlockAccess() { mtx.unlock(); }
 };
 
 #endif

@@ -59,6 +59,19 @@
         "cstdarg": "cpp",
         "cwctype": "cpp",
         "unordered_map": "cpp",
-        "functional": "cpp"
-    }
+        "functional": "cpp",
+        "list": "cpp",
+        "algorithm": "cpp",
+        "charconv": "cpp",
+        "format": "cpp",
+        "forward_list": "cpp",
+        "iomanip": "cpp",
+        "locale": "cpp",
+        "optional": "cpp",
+        "xlocbuf": "cpp",
+        "xlocmes": "cpp",
+        "xlocmon": "cpp",
+        "xloctime": "cpp"
+    },
+    "C_Cpp.errorSquiggles": "enabled"
 }
